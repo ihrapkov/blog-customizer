@@ -15,35 +15,91 @@ import {
 
 import styles from './ArticleParamsForm.module.scss';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-export const ArticleParamsForm = () => {
-	const [isOpen, setIsOpen] = useState(true);
+export const ArticleParamsForm = ({
+	appliedState,
+	onApply,
+}: {
+	appliedState: typeof defaultArticleState;
+	onApply: (state: typeof defaultArticleState) => void;
+}) => {
+	const [isOpen, setIsOpen] = useState(false);
 	// состояние параметров статьи
 	const [selectedFontFamily, setSelectedFontFamily] = useState<OptionType>(
-		defaultArticleState.fontFamilyOption
+		appliedState.fontFamilyOption
 	);
 	const [selectedFontColor, setSelectedFontColor] = useState<OptionType>(
-		defaultArticleState.fontColor
+		appliedState.fontColor
 	);
 	const [selectedBgColor, setSelectedBgColor] = useState<OptionType>(
-		defaultArticleState.backgroundColor
+		appliedState.backgroundColor
 	);
 	const [selectedContentWidth, setSelectedContentWidth] = useState<OptionType>(
-		defaultArticleState.contentWidth
+		appliedState.contentWidth
 	);
 	const [selectedFontSize, setSelectedFontSize] = useState<OptionType>(
-		defaultArticleState.fontSizeOption
+		appliedState.fontSizeOption
 	);
+
+	const handleApply = () => {
+		const newState = {
+			fontFamilyOption: selectedFontFamily,
+			fontColor: selectedFontColor,
+			backgroundColor: selectedBgColor,
+			contentWidth: selectedContentWidth,
+			fontSizeOption: selectedFontSize,
+		};
+		onApply(newState);
+	};
+
+	const handleReset = () => {
+		// reset to the initial state captured when the component mounted
+		setSelectedFontFamily(initialState.fontFamilyOption);
+		setSelectedFontColor(initialState.fontColor);
+		setSelectedBgColor(initialState.backgroundColor);
+		setSelectedContentWidth(initialState.contentWidth);
+		setSelectedFontSize(initialState.fontSizeOption);
+		onApply(initialState);
+	};
+
+	// capture the initial state on first render
+	const initialState = React.useMemo(
+		() => ({
+			fontFamilyOption: defaultArticleState.fontFamilyOption,
+			fontColor: defaultArticleState.fontColor,
+			backgroundColor: defaultArticleState.backgroundColor,
+			contentWidth: defaultArticleState.contentWidth,
+			fontSizeOption: defaultArticleState.fontSizeOption,
+		}),
+		[]
+	);
+
+	const sidebarRef = React.useRef<HTMLDivElement>(null);
+
+	React.useEffect(() => {
+		if (!isOpen) return;
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				sidebarRef.current &&
+				!sidebarRef.current.contains(e.target as Node)
+			) {
+				setIsOpen(false);
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [isOpen]);
 
 	return (
 		<>
 			<ArrowButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
 			<aside
+				ref={sidebarRef}
 				className={`${styles.container} ${
 					isOpen ? styles.container_open : ''
 				}`}>
-				<form className={styles.form}>
+				<form className={styles.form} onSubmit={(e) => e.preventDefault()}>
 					<h3 className={styles.title}>Задайте параметры</h3>
 					{/* Пример использования Select для выбора семейства шрифта */}
 					<Select
@@ -85,8 +141,18 @@ export const ArticleParamsForm = () => {
 						title='Ширина контента'
 					/>
 					<div className={styles.bottomContainer}>
-						<Button title='Сбросить' htmlType='reset' type='clear' />
-						<Button title='Применить' htmlType='submit' type='apply' />
+						<Button
+							title='Сбросить'
+							htmlType='button'
+							type='clear'
+							onClick={handleReset}
+						/>
+						<Button
+							title='Применить'
+							htmlType='button'
+							type='apply'
+							onClick={handleApply}
+						/>
 					</div>
 				</form>
 			</aside>
