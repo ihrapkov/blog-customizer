@@ -26,40 +26,21 @@ export const ArticleParamsForm = ({
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	// состояние параметров статьи
-	const [selectedFontFamily, setSelectedFontFamily] = useState<OptionType>(
-		appliedState.fontFamilyOption
-	);
-	const [selectedFontColor, setSelectedFontColor] = useState<OptionType>(
-		appliedState.fontColor
-	);
-	const [selectedBgColor, setSelectedBgColor] = useState<OptionType>(
-		appliedState.backgroundColor
-	);
-	const [selectedContentWidth, setSelectedContentWidth] = useState<OptionType>(
-		appliedState.contentWidth
-	);
-	const [selectedFontSize, setSelectedFontSize] = useState<OptionType>(
-		appliedState.fontSizeOption
-	);
+	const [formState, setFormState] = useState({
+		fontFamilyOption: appliedState.fontFamilyOption,
+		fontColor: appliedState.fontColor,
+		backgroundColor: appliedState.backgroundColor,
+		contentWidth: appliedState.contentWidth,
+		fontSizeOption: appliedState.fontSizeOption,
+	});
 
 	const handleApply = () => {
-		const newState = {
-			fontFamilyOption: selectedFontFamily,
-			fontColor: selectedFontColor,
-			backgroundColor: selectedBgColor,
-			contentWidth: selectedContentWidth,
-			fontSizeOption: selectedFontSize,
-		};
-		onApply(newState);
+		onApply(formState);
 	};
 
 	const handleReset = () => {
 		// reset to the initial state captured when the component mounted
-		setSelectedFontFamily(initialState.fontFamilyOption);
-		setSelectedFontColor(initialState.fontColor);
-		setSelectedBgColor(initialState.backgroundColor);
-		setSelectedContentWidth(initialState.contentWidth);
-		setSelectedFontSize(initialState.fontSizeOption);
+		setFormState(initialState);
 		onApply(initialState);
 	};
 
@@ -75,7 +56,12 @@ export const ArticleParamsForm = ({
 		[]
 	);
 
-	const sidebarRef = React.useRef<HTMLDivElement>(null);
+	const sidebarRef = React.useRef<HTMLElement>(null);
+
+	const handleOnChange =
+		(field: keyof typeof formState) => (value: OptionType) => {
+			setFormState((prev) => ({ ...prev, [field]: value }));
+		};
 
 	React.useEffect(() => {
 		if (!isOpen) return;
@@ -103,9 +89,9 @@ export const ArticleParamsForm = ({
 					<h3 className={styles.title}>Задайте параметры</h3>
 					{/* Пример использования Select для выбора семейства шрифта */}
 					<Select
-						selected={selectedFontFamily}
+						selected={formState.fontFamilyOption}
 						options={fontFamilyOptions}
-						onChange={setSelectedFontFamily}
+						onChange={handleOnChange('fontFamilyOption')}
 						placeholder='Семейство шрифта'
 						title='Шрифт'
 					/>
@@ -114,29 +100,29 @@ export const ArticleParamsForm = ({
 					<RadioGroup
 						name='fontSize'
 						options={fontSizeOptions}
-						selected={selectedFontSize}
-						onChange={setSelectedFontSize}
+						selected={formState.fontSizeOption}
+						onChange={handleOnChange('fontSizeOption')}
 						title='Размер шрифта'
 					/>
 					<Select
-						selected={selectedFontColor}
+						selected={formState.fontColor}
 						options={fontColors}
-						onChange={setSelectedFontColor}
+						onChange={handleOnChange('fontColor')}
 						placeholder='Цвет шрифта'
 						title='Цвет шрифта'
 					/>
 					<Separator />
 					<Select
-						selected={selectedBgColor}
+						selected={formState.backgroundColor}
 						options={backgroundColors}
-						onChange={setSelectedBgColor}
+						onChange={handleOnChange('backgroundColor')}
 						placeholder='Цвет фона'
 						title='Цвет фона'
 					/>
 					<Select
-						selected={selectedContentWidth}
+						selected={formState.contentWidth}
 						options={contentWidthArr}
-						onChange={setSelectedContentWidth}
+						onChange={handleOnChange('contentWidth')}
 						placeholder='Ширина контента'
 						title='Ширина контента'
 					/>
